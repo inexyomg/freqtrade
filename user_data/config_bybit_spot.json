@@ -41,12 +41,15 @@
         "ccxt_config": {},
         "ccxt_async_config": {},
         "pair_whitelist": [
-            "BTC/USDT",
-            "ETH/USDT",
-            "SOL/USDT",
-            "LINK/USDT",
-            "AVAX/USDT",
-            "DOT/USDT"
+            "BTC/USDT", "ETH/USDT", "SOL/USDT", "BNB/USDT", "XRP/USDT",
+            "ADA/USDT", "DOGE/USDT", "AVAX/USDT", "DOT/USDT", "LINK/USDT",
+            "LTC/USDT", "BCH/USDT", "ATOM/USDT", "NEAR/USDT", "TRX/USDT",
+            "TON/USDT", "APT/USDT", "SUI/USDT", "ICP/USDT", "FIL/USDT",
+            "ETC/USDT", "XLM/USDT", "ALGO/USDT", "HBAR/USDT", "VET/USDT",
+            "AAVE/USDT", "UNI/USDT", "MKR/USDT", "LDO/USDT", "CRV/USDT",
+            "ARB/USDT", "OP/USDT", "IMX/USDT", "POL/USDT",
+            "INJ/USDT", "TIA/USDT", "SEI/USDT", "RENDER/USDT", "RUNE/USDT",
+            "FET/USDT"
         ],
         "pair_blacklist": [
             ".*UP/.*",

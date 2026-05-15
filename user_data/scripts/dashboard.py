@@ -304,6 +304,69 @@ def trade_plan(entry_price: float) -> dict:
     }
 
 
+def _fmt_price(x: float) -> str:
+    if x >= 100:
+        return f"${x:,.2f}"
+    if x >= 1:
+        return f"${x:,.3f}"
+    return f"${x:,.6f}".rstrip("0").rstrip(".")
+
+
+def signal_mini_chart(df: pd.DataFrame, plan: dict) -> go.Figure:
+    """Compact price chart for a BUY signal card with entry/TP/SL lines."""
+    view = df.tail(96).copy()  # ~24h on 15m
+    fig = go.Figure()
+    fig.add_trace(go.Candlestick(
+        x=view["date"], open=view["open"], high=view["high"],
+        low=view["low"], close=view["close"], showlegend=False,
+        increasing_line_color="#22c55e", decreasing_line_color="#ef4444",
+    ))
+    fig.add_trace(go.Scatter(
+        x=view["date"], y=view["bb_upper"], mode="lines",
+        line=dict(width=1, color="rgba(180,180,180,0.7)"), showlegend=False,
+        name="BB upper",
+    ))
+    fig.add_trace(go.Scatter(
+        x=view["date"], y=view["bb_middle"], mode="lines",
+        line=dict(width=1, color="rgba(160,160,160,0.5)", dash="dot"),
+        showlegend=False, name="BB mid",
+    ))
+    fig.add_trace(go.Scatter(
+        x=view["date"], y=view["bb_lower"], mode="lines",
+        line=dict(width=1, color="rgba(180,180,180,0.7)"), showlegend=False,
+        name="BB lower",
+    ))
+    fig.add_hline(
+        y=plan["entry"], line=dict(color="#3b82f6", width=2),
+        annotation_text=f"вход {_fmt_price(plan['entry'])}",
+        annotation_position="top left",
+        annotation_font=dict(size=11, color="#3b82f6"),
+    )
+    fig.add_hline(
+        y=plan["tp_30min"], line=dict(color="#22c55e", width=1, dash="dot"),
+        annotation_text=f"+2.5% → {_fmt_price(plan['tp_30min'])}",
+        annotation_position="top right",
+        annotation_font=dict(size=10, color="#22c55e"),
+    )
+    fig.add_hline(
+        y=plan["stoploss"], line=dict(color="#ef4444", width=1, dash="dot"),
+        annotation_text=f"-5% → {_fmt_price(plan['stoploss'])}",
+        annotation_position="bottom right",
+        annotation_font=dict(size=10, color="#ef4444"),
+    )
+    fig.update_layout(
+        height=280,
+        margin=dict(l=10, r=10, t=10, b=10),
+        xaxis_rangeslider_visible=False,
+        showlegend=False,
+        hovermode="x unified",
+        plot_bgcolor="rgba(0,0,0,0)",
+    )
+    fig.update_xaxes(showgrid=False)
+    fig.update_yaxes(showgrid=True, gridcolor="rgba(128,128,128,0.1)")
+    return fig
+
+
 # ---------- trade simulation (for history table) ----------
 
 
@@ -505,11 +568,16 @@ with tab_now:
                         st.success(diag["reason_summary"])
                         st.markdown("**📍 План сделки**")
                         st.markdown(
-                            f"- **Купить по:** ~${plan['entry']:,.4f}\n"
-                            f"- **🎯 Продать (до 30 мин, +2.5%):** ~${plan['tp_30min']:,.4f}\n"
-                            f"- **🎯 Продать (до 90 мин, +1.5%):** ~${plan['tp_90min']:,.4f}\n"
-                            f"- **🎯 Продать (до 4ч, +0.8%):** ~${plan['tp_240min']:,.4f}\n"
-                            f"- **🛑 Стоп-лосс (−5%):** ~${plan['stoploss']:,.4f}"
+                            f"- **Купить по:** ~{_fmt_price(plan['entry'])}\n"
+                            f"- **🎯 Продать (до 30 мин, +2.5%):** ~{_fmt_price(plan['tp_30min'])}\n"
+                            f"- **🎯 Продать (до 90 мин, +1.5%):** ~{_fmt_price(plan['tp_90min'])}\n"
+                            f"- **🎯 Продать (до 4ч, +0.8%):** ~{_fmt_price(plan['tp_240min'])}\n"
+                            f"- **🛑 Стоп-лосс (−5%):** ~{_fmt_price(plan['stoploss'])}"
+                        )
+                        st.plotly_chart(
+                            signal_mini_chart(df_sig, plan),
+                            use_container_width=True,
+                            key=f"mini_{pair}",
                         )
                     else:
                         st.info(diag["reason_summary"])
