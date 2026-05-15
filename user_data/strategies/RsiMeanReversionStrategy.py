@@ -76,6 +76,27 @@ class RsiMeanReversionStrategy(IStrategy):
 
     startup_candle_count: int = 400
 
+    # ---- Protections (moved from config; config-side is deprecated) ----
+    @property
+    def protections(self):
+        return [
+            {"method": "CooldownPeriod", "stop_duration_candles": 5},
+            {
+                "method": "MaxDrawdown",
+                "lookback_period_candles": 200,
+                "trade_limit": 10,
+                "stop_duration_candles": 50,
+                "max_allowed_drawdown": 0.10,
+            },
+            {
+                "method": "StoplossGuard",
+                "lookback_period_candles": 100,
+                "trade_limit": 3,
+                "stop_duration_candles": 50,
+                "only_per_pair": False,
+            },
+        ]
+
     # ---- Hyperoptable parameters ----
     rsi_buy = IntParameter(15, 35, default=25, space="buy")
     rsi_sell = IntParameter(55, 80, default=65, space="sell")
