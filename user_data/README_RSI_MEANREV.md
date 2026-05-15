@@ -10,6 +10,26 @@
   `dry_run_wallet=200`, 6 ликвидных пар. Dry-run по умолчанию.
 - `scripts/download_sentiment_history.py` — выкачать историю Fear&Greed.
 - `scripts/walk_forward.py` — walk-forward валидация против переоптимизации.
+- `scripts/dashboard.py` — Streamlit-дашборд для интерактивного изучения.
+
+## 🖥️ Дашборд (начать здесь)
+
+Запусти и тыкайся в браузере:
+
+```bash
+source .venv/bin/activate
+pip install streamlit plotly   # один раз
+streamlit run user_data/scripts/dashboard.py
+```
+
+Откроется на http://localhost:8501. Внутри:
+
+- **Sidebar** — выбор пары/таймфрейма, слайдеры порогов RSI/BB/F&G. Меняешь — сигналы пересчитываются мгновенно.
+- **График и сигналы** — свечи + Bollinger, RSI снизу, F&G ещё ниже, треугольники входов/выходов.
+- **Sentiment** — историческая кривая Fear&Greed и кнопка live-скоринга монет.
+- **Run freqtrade** — кнопки download-data / lookahead / backtest / hyperopt со стримом логов прямо в страницу.
+
+Это удобный способ понять, как ведёт себя стратегия с разными параметрами, **до** того как гонять hyperopt на сотни эпох.
 
 ## Полная последовательность
 
