@@ -59,27 +59,9 @@
     "pairlists": [
         { "method": "StaticPairList" },
         {
-            "method": "VolumePairList",
-            "number_assets": 6,
-            "sort_key": "quoteVolume",
-            "min_value": 1000000,
-            "refresh_period": 1800
-        },
-        { "method": "AgeFilter", "min_days_listed": 30 },
-        {
             "method": "PriceFilter",
             "low_price_ratio": 0.01,
             "min_price": 0.001
-        },
-        {
-            "method": "SpreadFilter",
-            "max_spread_ratio": 0.005
-        },
-        {
-            "method": "RangeStabilityFilter",
-            "lookback_days": 5,
-            "min_rate_of_change": 0.03,
-            "refresh_period": 1800
         }
     ],
 
