@@ -95,11 +95,11 @@
         "listen_port": 8080,
         "verbosity": "error",
         "enable_openapi": false,
-        "jwt_secret_key": "CHANGE_ME_TO_RANDOM_STRING",
-        "ws_token": "CHANGE_ME_TOO",
+        "jwt_secret_key": "PLEASE_CHANGE_ME_BEFORE_LIVE_xxxxxxxxxxxxxxxxxxxx",
+        "ws_token": "PLEASE_CHANGE_ME_BEFORE_LIVE_xxxxxxxxxxxxxxxxxxxx",
         "CORS_origins": [],
         "username": "freqtrader",
-        "password": "CHANGE_ME_TOO_PLEASE"
+        "password": "PLEASE_CHANGE_ME_BEFORE_LIVE"
     },
 
     "bot_name": "rsi_meanrev_bybit",
