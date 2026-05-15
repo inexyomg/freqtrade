@@ -387,11 +387,11 @@ with tab_run:
     log_holder = st.empty()
 
     btn1, btn2, btn3, btn4 = st.columns(4)
-    fp = ".venv/bin/freqtrade"
+    fp = [sys.executable, "-m", "freqtrade"]
 
     if btn1.button("⬇️ Download data"):
         cmd = [
-            fp, "download-data",
+            *fp, "download-data",
             "--config", str(CONFIG_PATH.relative_to(REPO_ROOT)),
             "--timeframes", "15m", "4h",
             "--days", str(days),
@@ -403,7 +403,7 @@ with tab_run:
 
     if btn2.button("🔍 Lookahead analysis"):
         cmd = [
-            fp, "lookahead-analysis",
+            *fp, "lookahead-analysis",
             "--config", str(CONFIG_PATH.relative_to(REPO_ROOT)),
             "--strategy", STRATEGY_NAME,
             "--timerange", timerange,
@@ -414,7 +414,7 @@ with tab_run:
 
     if btn3.button("🧪 Backtest"):
         cmd = [
-            fp, "backtesting",
+            *fp, "backtesting",
             "--config", str(CONFIG_PATH.relative_to(REPO_ROOT)),
             "--strategy", STRATEGY_NAME,
             "--timerange", timerange,
@@ -426,7 +426,7 @@ with tab_run:
 
     if btn4.button("🎯 Hyperopt (200 epochs)"):
         cmd = [
-            fp, "hyperopt",
+            *fp, "hyperopt",
             "--config", str(CONFIG_PATH.relative_to(REPO_ROOT)),
             "--strategy", STRATEGY_NAME,
             "--hyperopt-loss", "SortinoHyperOptLoss",
