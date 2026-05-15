@@ -9,6 +9,14 @@ user_data/*
 !user_data/notebooks
 !user_data/models
 !user_data/freqaimodels
+!user_data/strategies
+!user_data/strategies/**
+!user_data/data_providers
+!user_data/data_providers/**
+!user_data/scripts
+!user_data/scripts/**
+!user_data/config_bybit_spot.json
+!user_data/README_RSI_MEANREV.md
 user_data/freqaimodels/*
 user_data/models/*
 user_data/notebooks/*

@@ -1,0 +1,96 @@
+{
+    "$schema": "https://schema.freqtrade.io/schema.json",
+    "max_open_trades": 2,
+    "stake_currency": "USDT",
+    "stake_amount": 15,
+    "tradable_balance_ratio": 0.95,
+    "fiat_display_currency": "USD",
+    "timeframe": "15m",
+    "dry_run": true,
+    "dry_run_wallet": 200,
+    "cancel_open_orders_on_exit": false,
+    "trading_mode": "spot",
+
+    "unfilledtimeout": {
+        "entry": 10,
+        "exit": 10,
+        "exit_timeout_count": 0,
+        "unit": "minutes"
+    },
+
+    "entry_pricing": {
+        "price_side": "same",
+        "use_order_book": true,
+        "order_book_top": 1,
+        "price_last_balance": 0.0,
+        "check_depth_of_market": {
+            "enabled": false,
+            "bids_to_ask_delta": 1
+        }
+    },
+    "exit_pricing": {
+        "price_side": "same",
+        "use_order_book": true,
+        "order_book_top": 1
+    },
+
+    "exchange": {
+        "name": "bybit",
+        "key": "",
+        "secret": "",
+        "ccxt_config": {},
+        "ccxt_async_config": {},
+        "pair_whitelist": [
+            "BTC/USDT", "ETH/USDT", "SOL/USDT", "BNB/USDT", "XRP/USDT",
+            "ADA/USDT", "DOGE/USDT", "AVAX/USDT", "DOT/USDT", "LINK/USDT",
+            "LTC/USDT", "BCH/USDT", "ATOM/USDT", "NEAR/USDT", "TRX/USDT",
+            "TON/USDT", "APT/USDT", "SUI/USDT", "ICP/USDT", "FIL/USDT",
+            "ETC/USDT", "XLM/USDT", "ALGO/USDT", "HBAR/USDT", "VET/USDT",
+            "AAVE/USDT", "UNI/USDT", "MKR/USDT", "LDO/USDT", "CRV/USDT",
+            "ARB/USDT", "OP/USDT", "IMX/USDT", "POL/USDT",
+            "INJ/USDT", "TIA/USDT", "SEI/USDT", "RENDER/USDT", "RUNE/USDT",
+            "FET/USDT"
+        ],
+        "pair_blacklist": [
+            ".*UP/.*",
+            ".*DOWN/.*",
+            ".*BEAR/.*",
+            ".*BULL/.*"
+        ]
+    },
+
+    "pairlists": [
+        { "method": "StaticPairList" },
+        {
+            "method": "PriceFilter",
+            "low_price_ratio": 0.01,
+            "min_price": 0.001
+        }
+    ],
+
+    "telegram": {
+        "enabled": false,
+        "token": "",
+        "chat_id": ""
+    },
+
+    "api_server": {
+        "enabled": true,
+        "listen_ip_address": "127.0.0.1",
+        "listen_port": 8080,
+        "verbosity": "error",
+        "enable_openapi": false,
+        "jwt_secret_key": "PLEASE_CHANGE_ME_BEFORE_LIVE_xxxxxxxxxxxxxxxxxxxx",
+        "ws_token": "PLEASE_CHANGE_ME_BEFORE_LIVE_xxxxxxxxxxxxxxxxxxxx",
+        "CORS_origins": [],
+        "username": "freqtrader",
+        "password": "PLEASE_CHANGE_ME_BEFORE_LIVE"
+    },
+
+    "bot_name": "rsi_meanrev_bybit",
+    "initial_state": "running",
+    "force_entry_enable": false,
+    "internals": {
+        "process_throttle_secs": 5
+    }
+}
