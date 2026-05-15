@@ -275,14 +275,26 @@ def diagnose_latest(
     all_ok = all(c["ok"] for c in checks)
     n_ok = sum(c["ok"] for c in checks)
 
+    # Detect overbought / exit-signal state separately
+    bb_middle = float(row.get("bb_middle", 0.0)) if not pd.isna(row.get("bb_middle")) else 0.0
+    overbought = (rsi > rsi_sell) and (close > bb_middle)
+
     if all_ok:
+        verdict = "BUY"
         reason = "🟢 Все 5 условий выполнены — стратегия покупает."
+    elif overbought:
+        verdict = "OVERBOUGHT"
+        reason = (
+            f"🔴 Перекупленность: RSI={rsi:.0f} > {rsi_sell}, цена выше средней BB. "
+            "Если есть открытая позиция — стратегия её закрывает по сигналу."
+        )
     else:
+        verdict = "WAIT"
         missing = [c["label"] for c in checks if not c["ok"]]
         reason = f"⚪ Выполнено {n_ok}/5. Не хватает: " + ", ".join(missing).lower() + "."
 
     return {
-        "verdict": "BUY" if all_ok else "WAIT",
+        "verdict": verdict,
         "checks": checks,
         "reason_summary": reason,
         "rsi": rsi,
@@ -290,6 +302,7 @@ def diagnose_latest(
         "bb_lower": bb_lower,
         "fng": fng,
         "n_ok": n_ok,
+        "overbought": overbought,
     }
 
 
@@ -534,34 +547,81 @@ with tab_now:
             "нажми «Download data», потом возвращайся сюда."
         )
     else:
-        pairs_to_show = [p for p in cfg_whitelist if p in list_pairs(exchange, "15m")]
+        pairs_with_data = list_pairs(exchange, "15m")
+        pairs_to_show = [p for p in cfg_whitelist if p in pairs_with_data]
         if not pairs_to_show:
             st.warning("Ни одна из пар в конфиге не имеет скачанных свечей. Скачай данные.")
 
-        # Render in 2 columns
-        for i in range(0, len(pairs_to_show), 2):
-            row_pairs = pairs_to_show[i:i + 2]
-            cols = st.columns(len(row_pairs))
-            for col, pair in zip(cols, row_pairs):
-                with col:
-                    df_sig = load_pair_with_signals(
-                        exchange, pair, fng_hist,
-                        rsi_buy, rsi_sell, bb_std, volume_factor, min_macro,
-                    )
-                    if df_sig is None or df_sig.empty:
-                        st.error(f"{pair}: нет данных")
-                        continue
-                    last = df_sig.iloc[-1]
-                    diag = diagnose_latest(last, rsi_buy, rsi_sell, volume_factor, min_macro)
-                    plan = trade_plan(float(last["close"]))
+        # First pass: compute diagnoses for all pairs so we can sort and summarise.
+        cards = []
+        for pair in pairs_to_show:
+            df_sig = load_pair_with_signals(
+                exchange, pair, fng_hist,
+                rsi_buy, rsi_sell, bb_std, volume_factor, min_macro,
+            )
+            if df_sig is None or df_sig.empty:
+                continue
+            last = df_sig.iloc[-1]
+            diag = diagnose_latest(last, rsi_buy, rsi_sell, volume_factor, min_macro)
+            cards.append({"pair": pair, "df_sig": df_sig, "last": last, "diag": diag})
 
+        # Summary metrics
+        n_buy = sum(1 for c in cards if c["diag"]["verdict"] == "BUY")
+        n_over = sum(1 for c in cards if c["diag"]["verdict"] == "OVERBOUGHT")
+        n_almost = sum(1 for c in cards if c["diag"]["verdict"] == "WAIT" and c["diag"]["n_ok"] == 4)
+        n_total = len(cards)
+
+        m1, m2, m3, m4 = st.columns(4)
+        m1.metric("🟢 ПОКУПАТЬ", n_buy, f"из {n_total}")
+        m2.metric("🟡 Почти готово (4/5)", n_almost)
+        m3.metric("🔴 Перекуплено", n_over)
+        m4.metric("⚪ Ждём", n_total - n_buy - n_over - n_almost)
+
+        # Filter buttons
+        filt = st.radio(
+            "Показывать:",
+            ["Все", "🟢 Только BUY", "🟡 Готовые + почти готовые", "🔴 Только перекупленные"],
+            horizontal=True, index=0,
+        )
+
+        order = {"BUY": 0, "OVERBOUGHT": 1, "WAIT": 2}
+        cards.sort(key=lambda c: (order[c["diag"]["verdict"]], -c["diag"]["n_ok"], c["diag"]["rsi"]))
+
+        def passes_filter(verdict: str, n_ok: int) -> bool:
+            if filt == "Все":
+                return True
+            if filt == "🟢 Только BUY":
+                return verdict == "BUY"
+            if filt == "🟡 Готовые + почти готовые":
+                return verdict == "BUY" or (verdict == "WAIT" and n_ok >= 4)
+            if filt == "🔴 Только перекупленные":
+                return verdict == "OVERBOUGHT"
+            return True
+
+        visible = [c for c in cards if passes_filter(c["diag"]["verdict"], c["diag"]["n_ok"])]
+
+        if not visible:
+            st.info("Под фильтр ничего не попало. Поменяй фильтр или ослабь пороги в сайдбаре.")
+
+        # Render in 2 columns
+        for i in range(0, len(visible), 2):
+            row_cards = visible[i:i + 2]
+            cols = st.columns(len(row_cards))
+            for col, card in zip(cols, row_cards):
+                pair, df_sig, last, diag = card["pair"], card["df_sig"], card["last"], card["diag"]
+                plan = trade_plan(float(last["close"]))
+                with col:
                     if diag["verdict"] == "BUY":
                         st.markdown(f"### 🟢 {pair}  —  **ПОКУПАТЬ**")
+                    elif diag["verdict"] == "OVERBOUGHT":
+                        st.markdown(f"### 🔴 {pair}  —  перекуплено")
+                    elif diag["n_ok"] == 4:
+                        st.markdown(f"### 🟡 {pair}  —  почти готово (4/5)")
                     else:
                         st.markdown(f"### ⚪ {pair}  —  ждём ({diag['n_ok']}/5)")
 
                     c1, c2 = st.columns([1, 1])
-                    c1.metric("Текущая цена", f"${last['close']:,.4f}".rstrip("0").rstrip("."))
+                    c1.metric("Текущая цена", _fmt_price(float(last["close"])))
                     c2.metric("RSI / F&G", f"{diag['rsi']:.0f} / {diag['fng']:+.2f}")
 
                     if diag["verdict"] == "BUY":
@@ -579,6 +639,8 @@ with tab_now:
                             use_container_width=True,
                             key=f"mini_{pair}",
                         )
+                    elif diag["verdict"] == "OVERBOUGHT":
+                        st.error(diag["reason_summary"])
                     else:
                         st.info(diag["reason_summary"])
 
